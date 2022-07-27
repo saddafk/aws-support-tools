@@ -59,14 +59,26 @@ else:
 
 
 # Get the first 100 functions
-response = client.list_functions()
+paginator = client.get_paginator('list_functions')
+response_iterator = paginator.paginate()
 logger.debug(f'list_functions response: {response}\n\n')
 
 functionList = []
 
-for function in response['Functions']:
-    logger.debug(f"Function Name: {function['FunctionName']}")
-    functionList.append(function['FunctionName'])
+for function in response_iterator:
+    #print(function)
+    if "NextMarker" in function:
+        #print(function['NextMarker'])
+        response_iterator = paginator.paginate(
+                            PaginationConfig={
+                                                'StartingToken': function['NextMarker']
+                                                                }
+                                          )
+    function_list=function['Functions']
+    #print(function_list)
+    i=0
+    for i in range(len(function_list)):
+        functionList.append(function_list[i]['FunctionName'])
 
 print(f"Found {len(functionList)} functions\n")
 logger.debug(f"Function List: {functionList}")
